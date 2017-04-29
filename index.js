@@ -1,6 +1,6 @@
 /**
  * affectimo
- * v0.1.0
+ * v0.1.2
  *
  * Analyse the affect and intensity of a string.
  *
@@ -60,8 +60,8 @@
 
   /**
   * @function getMatches
-  * @param  {arr} arr       {token array}
-  * @return {object} {object of matches}
+  * @param  {arr} arr {token array}
+  * @return {object}  {object of matches}
   */
   const getMatches = (arr) => {
     let matches = {}
@@ -100,40 +100,33 @@
 
   /**
   * @function calcLex
-  * @param  {object} obj      {matches object}
-  * @param  {number} wc       {wordcount}
-  * @param  {number} int      {intercept value}
-  * @return {number} {lexical value}
+  * @param  {object} obj  {matches object}
+  * @param  {number} wc   {wordcount}
+  * @param  {number} int  {intercept value}
+  * @return {number}      {lexical value}
   */
   const calcLex = (obj, wc, int) => {
-    let counts = []   // number of matched objects
-    let weights = []  // weights of matched objects
-    // loop through the matches and get the word frequency (counts) and weights
+    // loop through the matches and add up the weights
+    let lex = 0
     let key
     for (key in obj) {
       if (!obj.hasOwnProperty(key)) continue
-      if (Array.isArray(obj[key][0])) { // if the first item in the match is an array, the item is a duplicate
-        counts.push(obj[key][0].length) // for duplicate matches
-      } else {
-        counts.push(1)                  // for non-duplicates
-      }
-      weights.push(obj[key][1])         // corresponding weight
+      lex += obj[key][1]
     }
-    // calculate lexical usage value
-    let lex = 0
-    counts.forEach(function (a, b) {
-      // weight + weight + weight etc
-      lex += weights[b]
-    })
-    // add int
-    lex = lex + int
+    // add the intercept value
+    lex += int
     // return final lexical value + intercept
     return lex
   }
 
+  /**
+  * @function affectimo
+  * @param  {string} str  {input string}
+  * @return {object}      {object of lexical values}
+  */
   const affectimo = (str) => {
     // make sure there is input before proceeding
-    if (str == null) return null
+    if (str == null) return { 'AFFECT': 0, 'INTENSITY': 0 }
     // make sure we're working with a string
     if (typeof str !== 'string') str = str.toString()
     // trim whitespace and convert to lowercase
@@ -141,13 +134,7 @@
     // convert our string to tokens
     const tokens = tokenizer(str)
     // if no tokens return 0
-    if (tokens == null) {
-      let lex = {
-        'AFFECT': 0,
-        'INTENSITY': 0
-      }
-      return lex
-    }
+    if (tokens == null) return { 'AFFECT': 0, 'INTENSITY': 0 }
     // get matches from array
     const matches = getMatches(tokens)
     // get wordcount
