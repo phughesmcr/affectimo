@@ -1,8 +1,8 @@
 /**
  * affectimo
- * v0.1.2
+ * v0.1.3
  *
- * Analyse the affect and intensity of a string.
+ * Analyse the affect (sentiment / valence) and intensity (arousal) of a string.
  *
  * Help me make this better:
  * https://github.com/phugh/affectimo
@@ -24,10 +24,10 @@
  * console.log(ai)
  *
  * Affect range: 1 = very negative, 5 = neutral, 9 = very positive
- * Intensity range:  1 (neutral/objective post) to 9 (very high)
+ * Intensity range: 1 = neutral/objective to 9 = very high
  *
- * @param {string} str  {input string}
- * @return {string} {A/I object}
+ * @param {string} str  input string
+ * @return {Object} object with 'AFFECT' and 'INTENSITY' keys
  */
 
 'use strict'
@@ -49,8 +49,10 @@
 
   // get number of times el appears in an array
   Array.prototype.indexesOf = function (el) {
-    var idxs = []
-    for (var i = this.length - 1; i >= 0; i--) {
+    const idxs = []
+    const len = this.length
+    let i = len - 1
+    for (i; i >= 0; i--) {
       if (this[i] === el) {
         idxs.unshift(i)
       }
@@ -60,11 +62,11 @@
 
   /**
   * @function getMatches
-  * @param  {arr} arr {token array}
-  * @return {object}  {object of matches}
+  * @param  {Array} arr token array
+  * @return {Object}  object of matches
   */
   const getMatches = (arr) => {
-    let matches = {}
+    const matches = {}
     // loop through the lexicon categories
     let cat // category
     for (cat in lexicon) {
@@ -100,10 +102,10 @@
 
   /**
   * @function calcLex
-  * @param  {object} obj  {matches object}
-  * @param  {number} wc   {wordcount}
-  * @param  {number} int  {intercept value}
-  * @return {number}      {lexical value}
+  * @param  {Object} obj  matches object
+  * @param  {number} wc   word count
+  * @param  {number} int  intercept value
+  * @return {number} lexical value
   */
   const calcLex = (obj, wc, int) => {
     // loop through the matches and add up the weights
@@ -111,22 +113,23 @@
     let key
     for (key in obj) {
       if (!obj.hasOwnProperty(key)) continue
-      lex += obj[key][1]
+      let weight = Number(obj[key][1])
+      lex += weight
     }
     // add the intercept value
-    lex += int
+    lex += Number(int)
     // return final lexical value + intercept
-    return lex
+    return Number(lex)
   }
 
   /**
   * @function affectimo
-  * @param  {string} str  {input string}
-  * @return {object}      {object of lexical values}
+  * @param  {string} str  input string
+  * @return {Object}  object of lexical values
   */
   const affectimo = (str) => {
     // make sure there is input before proceeding
-    if (str == null) return { 'AFFECT': 0, 'INTENSITY': 0 }
+    if (str == null) return {AFFECT: 0, INTENSITY: 0}
     // make sure we're working with a string
     if (typeof str !== 'string') str = str.toString()
     // trim whitespace and convert to lowercase
@@ -134,13 +137,13 @@
     // convert our string to tokens
     const tokens = tokenizer(str)
     // if no tokens return 0
-    if (tokens == null) return { 'AFFECT': 0, 'INTENSITY': 0 }
+    if (tokens == null) return {AFFECT: 0, INTENSITY: 0}
     // get matches from array
     const matches = getMatches(tokens)
     // get wordcount
     const wordcount = tokens.length
     // calculate lexical useage
-    let lex = {}
+    const lex = {}
     lex.AFFECT = calcLex(matches.AFFECT, wordcount, 5.037104721).toFixed(2)
     lex.INTENSITY = calcLex(matches.INTENSITY, wordcount, 2.399762631).toFixed(2)
     // return lexical value

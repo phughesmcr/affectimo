@@ -1,6 +1,6 @@
 # affectimo
 
-Analyse the affect and intensity of a string.
+Analyse the affect (sentiment / valence) and intensity (arousal) of a string.
 
 ## Usage
 ```Javascript
@@ -17,9 +17,9 @@ console.log(ai)
   'INTENSITY': 2.83
 }
 ```
-Affect range: 1 = very negative, 5 = neutral, 9 = very positive
+Affect range: 1 = very negative, 5 = neutral, 9 = very positive.
 
-Intensity range:  1 (neutral/objective post) to 9 (very high)
+Intensity range: 1 = neutral/objective, to 9 = very high.
 
 ## Acknowledgements
 
@@ -28,9 +28,9 @@ Sedoc J., Preotiuc-Pietro D. & Ungar, L. (2017). Predicting Emotional Word Ratin
 
 ### Lexicon
 Using the affect/intensity lexicon data from http://www.wwbp.org/lexica.html
+
 Used under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported licence
 
 # Licence
 (C) 2017 P. Hughes
-Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported
 [Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported](http://creativecommons.org/licenses/by-nc-sa/3.0/)
