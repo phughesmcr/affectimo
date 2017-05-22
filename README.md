@@ -9,6 +9,8 @@ const text = "A big long string of text...";
 let ai = affectimo(text);
 console.log(ai)
 ```
+Lexical weights run from a maximum of 0.91 to a minimum of -0.98
+therefore a "min" value of -0.98 will include all words in the lexicon
 
 ## Output
 ```Javascript
@@ -19,7 +21,9 @@ console.log(ai)
 ```
 Affect range: 1 = very negative, 5 = neutral, 9 = very positive.
 
-Intensity range: 1 = neutral/objective, to 9 = very high.
+Intensity range: 1 = neutral/objective, to 9 = very high intensity.
+
+If there are no lexicon matches {'AFFECT': 0, 'INTENSITY': 0} will be returned
 
 ## Acknowledgements
 

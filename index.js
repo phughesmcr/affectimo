@@ -1,6 +1,6 @@
 /**
  * affectimo
- * v0.1.3
+ * v0.1.4
  *
  * Analyse the affect (sentiment / valence) and intensity (arousal) of a string.
  *
@@ -20,13 +20,18 @@
  * Usage example:
  * const affectimo = require('affectimo');
  * const text = "A big long string of text...";
- * let ai = affectimo(text);
+ * const ai = affectimo(text);
  * console.log(ai)
  *
  * Affect range: 1 = very negative, 5 = neutral, 9 = very positive
  * Intensity range: 1 = neutral/objective to 9 = very high
+ * If there are no lexicon matches {'AFFECT': 0, 'INTENSITY': 0} will be returned
+ *
+ * Lexical weights run from a maximum of 0.91 to a minimum of -0.98
+ * therefore a "min" value of -0.98 will include all words in the lexicon
  *
  * @param {string} str  input string
+ * @param {number} min  minimum lexical weight threshold for matches (0.91 to -0.98)
  * @return {Object} object with 'AFFECT' and 'INTENSITY' keys
  */
 
@@ -35,29 +40,15 @@
   const root = this
   const previous = root.affectimo
 
-  const hasRequire = typeof require !== 'undefined'
-
   let tokenizer = root.tokenizer
   let lexicon = root.lexicon
 
-  if (typeof _ === 'undefined') {
+  if (typeof tokenizer === 'undefined') {
+    const hasRequire = typeof require !== 'undefined'
     if (hasRequire) {
       tokenizer = require('happynodetokenizer')
       lexicon = require('./data/lexicon.json')
     } else throw new Error('affectimo required happynodetokenizer and ./data/lexicon.json')
-  }
-
-  // get number of times el appears in an array
-  Array.prototype.indexesOf = function (el) {
-    const idxs = []
-    const len = this.length
-    let i = len - 1
-    for (i; i >= 0; i--) {
-      if (this[i] === el) {
-        idxs.unshift(i)
-      }
-    }
-    return idxs
   }
 
   /**
@@ -65,36 +56,25 @@
   * @param  {Array} arr token array
   * @return {Object}  object of matches
   */
-  const getMatches = (arr) => {
+  const getMatches = (arr, min) => {
     const matches = {}
     // loop through the lexicon categories
-    let cat // category
-    for (cat in lexicon) {
-      if (!lexicon.hasOwnProperty(cat)) continue
+    let category
+    for (category in lexicon) {
+      if (!lexicon.hasOwnProperty(category)) continue
       let match = []
       // loop through words in category
-      let data = lexicon[cat]
+      let data = lexicon[category]
       let key
       for (key in data) {
         if (!data.hasOwnProperty(key)) continue
-        // if word from input matches word from lexicon ...
-        if (arr.indexOf(key) > -1) {
-          let item
-          let weight = data[key]
-          let reps = arr.indexesOf(key).length // numbder of times the word appears in the input text
-          if (reps > 1) { // if the word appears more than once, group all appearances in one array
-            let words = []
-            for (let i = 0; i < reps; i++) {
-              words.push(key)
-            }
-            item = [words, weight]
-          } else {
-            item = [key, weight]
-          }
-          match.push(item)
+        // if word from input matches word from lexicon push weight to matches
+        let weight = data[key]
+        if (arr.indexOf(key) > -1 && weight > min) {
+          match.push(weight)
         }
-        matches[cat] = match
       }
+      matches[category] = match
     }
     // return matches object
     return matches
@@ -103,33 +83,32 @@
   /**
   * @function calcLex
   * @param  {Object} obj  matches object
-  * @param  {number} wc   word count
   * @param  {number} int  intercept value
   * @return {number} lexical value
   */
-  const calcLex = (obj, wc, int) => {
+  const calcLex = (obj, int) => {
     // loop through the matches and add up the weights
     let lex = 0
     let key
     for (key in obj) {
       if (!obj.hasOwnProperty(key)) continue
-      let weight = Number(obj[key][1])
-      lex += weight
+      lex += Number(obj[key]) // lex += weight
     }
     // add the intercept value
-    lex += Number(int)
+    lex += int
     // return final lexical value + intercept
-    return Number(lex)
+    return lex
   }
 
   /**
   * @function affectimo
   * @param  {string} str  input string
+  * @param  {number} min  minimum lexical weight threshold for matches (0.91 to -0.98)
   * @return {Object}  object of lexical values
   */
-  const affectimo = (str) => {
+  const affectimo = (str, min) => {
     // make sure there is input before proceeding
-    if (str == null) return {AFFECT: 0, INTENSITY: 0}
+    if (str == null) return null
     // make sure we're working with a string
     if (typeof str !== 'string') str = str.toString()
     // trim whitespace and convert to lowercase
@@ -138,14 +117,16 @@
     const tokens = tokenizer(str)
     // if no tokens return 0
     if (tokens == null) return {AFFECT: 0, INTENSITY: 0}
+    // if no minimum set to -999
+    if (min == null) min = -999
+    // make sure min is a number
+    if (typeof min !== 'number') min = Number(min)
     // get matches from array
-    const matches = getMatches(tokens)
-    // get wordcount
-    const wordcount = tokens.length
+    const matches = getMatches(tokens, min)
     // calculate lexical useage
     const lex = {}
-    lex.AFFECT = calcLex(matches.AFFECT, wordcount, 5.037104721).toFixed(2)
-    lex.INTENSITY = calcLex(matches.INTENSITY, wordcount, 2.399762631).toFixed(2)
+    lex.AFFECT = calcLex(matches.AFFECT, 5.037104721)
+    lex.INTENSITY = calcLex(matches.INTENSITY, 2.399762631)
     // return lexical value
     return lex
   }
