@@ -1,6 +1,6 @@
 /**
  * affectimo
- * v0.1.4
+ * v0.2.0
  *
  * Analyse the affect (sentiment / valence) and intensity (arousal) of a string.
  *
@@ -19,8 +19,13 @@
  *
  * Usage example:
  * const affectimo = require('affectimo');
+ * const opts = {
+ *   'threshold': -0.98
+ *   'bigrams': true,
+ *   'trigrams': true
+ * }
  * const text = "A big long string of text...";
- * const ai = affectimo(text);
+ * const ai = affectimo(text, opts);
  * console.log(ai)
  *
  * Affect range: 1 = very negative, 5 = neutral, 9 = very positive
@@ -28,10 +33,10 @@
  * If there are no lexicon matches {'AFFECT': 0, 'INTENSITY': 0} will be returned
  *
  * Lexical weights run from a maximum of 0.91 to a minimum of -0.98
- * therefore a "min" value of -0.98 will include all words in the lexicon
+ * therefore a "threshold" value of -0.98 will include all words in the lexicon
  *
  * @param {string} str  input string
- * @param {number} min  minimum lexical weight threshold for matches (0.91 to -0.98)
+ * @param {Object} opts  minimum lexical weight threshold for matches (0.91 to -0.98)
  * @return {Object} object with 'AFFECT' and 'INTENSITY' keys
  */
 
@@ -42,13 +47,49 @@
 
   let tokenizer = root.tokenizer
   let lexicon = root.lexicon
+  let natural = root.natural
 
   if (typeof tokenizer === 'undefined') {
     const hasRequire = typeof require !== 'undefined'
     if (hasRequire) {
       tokenizer = require('happynodetokenizer')
       lexicon = require('./data/lexicon.json')
+      natural = require('natural')
     } else throw new Error('affectimo required happynodetokenizer and ./data/lexicon.json')
+  }
+
+    /**
+  * @function getBigrams
+  * @param  {string} str input string
+  * @return {Array} array of bigram strings
+  */
+  const getBigrams = str => {
+    const NGrams = natural.NGrams
+    const bigrams = NGrams.bigrams(str)
+    const result = []
+    const len = bigrams.length
+    let i = 0
+    for (i; i < len; i++) {
+      result.push(bigrams[i].join(' '))
+    }
+    return result
+  }
+
+  /**
+  * @function getTrigrams
+  * @param  {string} str input string
+  * @return {Array} array of trigram strings
+  */
+  const getTrigrams = str => {
+    const NGrams = natural.NGrams
+    const trigrams = NGrams.trigrams(str)
+    const result = []
+    const len = trigrams.length
+    let i = 0
+    for (i; i < len; i++) {
+      result.push(trigrams[i].join(' '))
+    }
+    return result
   }
 
   /**
@@ -106,23 +147,38 @@
   * @param  {number} min  minimum lexical weight threshold for matches (0.91 to -0.98)
   * @return {Object}  object of lexical values
   */
-  const affectimo = (str, min) => {
+  const affectimo = (str, opts) => {
     // make sure there is input before proceeding
     if (str == null) return null
     // make sure we're working with a string
     if (typeof str !== 'string') str = str.toString()
     // trim whitespace and convert to lowercase
     str = str.toLowerCase().trim()
+    // option defaults
+    if (opts == null) {
+      opts = {
+        'threshold': -999,    // minimum weight threshold
+        'bigrams': true,      // match bigrams?
+        'trigrams': true      // match trigrams?
+      }
+    }
+    opts.threshold = opts.threshold || -999
     // convert our string to tokens
-    const tokens = tokenizer(str)
+    let tokens = tokenizer(str)
     // if no tokens return 0
     if (tokens == null) return {AFFECT: 0, INTENSITY: 0}
-    // if no minimum set to -999
-    if (min == null) min = -999
-    // make sure min is a number
-    if (typeof min !== 'number') min = Number(min)
+    // handle bigrams if wanted
+    if (opts.bigrams) {
+      const bigrams = getBigrams(str)
+      tokens = tokens.concat(bigrams)
+    }
+    // handle trigrams if wanted
+    if (opts.trigrams) {
+      const trigrams = getTrigrams(str)
+      tokens = tokens.concat(trigrams)
+    }
     // get matches from array
-    const matches = getMatches(tokens, min)
+    const matches = getMatches(tokens, opts.threshold)
     // calculate lexical useage
     const lex = {}
     lex.AFFECT = calcLex(matches.AFFECT, 5.037104721)

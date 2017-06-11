@@ -6,11 +6,18 @@ Analyse the affect (sentiment / valence) and intensity (arousal) of a string.
 ```Javascript
 const affectimo = require('affectimo');
 const text = "A big long string of text...";
+ const opts = {
+  'threshold': -0.98
+  'bigrams': true,
+  'trigrams': true
+}
 let ai = affectimo(text);
 console.log(ai)
 ```
 Lexical weights run from a maximum of 0.91 to a minimum of -0.98
-therefore a "min" value of -0.98 will include all words in the lexicon
+therefore a "threshold" value of -0.98 will include all words in the lexicon
+
+The lexicon includes bigrams and trigrams, however we recommend you disable these for long strings
 
 ## Output
 ```Javascript
