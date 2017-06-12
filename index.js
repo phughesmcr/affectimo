@@ -1,6 +1,6 @@
 /**
  * affectimo
- * v0.2.0
+ * v0.2.1
  *
  * Analyse the affect (sentiment / valence) and intensity (arousal) of a string.
  *
@@ -25,8 +25,8 @@
  *   'trigrams': true
  * }
  * const text = "A big long string of text...";
- * const ai = affectimo(text, opts);
- * console.log(ai)
+ * const affect = affectimo(text, opts);
+ * console.log(affect)
  *
  * Affect range: 1 = very negative, 5 = neutral, 9 = very positive
  * Intensity range: 1 = neutral/objective to 9 = very high
@@ -35,8 +35,8 @@
  * Lexical weights run from a maximum of 0.91 to a minimum of -0.98
  * therefore a "threshold" value of -0.98 will include all words in the lexicon
  *
- * @param {string} str  input string
- * @param {Object} opts  minimum lexical weight threshold for matches (0.91 to -0.98)
+ * @param {string} str input string
+ * @param {Object} opts options object
  * @return {Object} object with 'AFFECT' and 'INTENSITY' keys
  */
 
@@ -45,29 +45,28 @@
   const root = this
   const previous = root.affectimo
 
-  let tokenizer = root.tokenizer
   let lexicon = root.lexicon
   let natural = root.natural
+  let tokenizer = root.tokenizer
 
-  if (typeof tokenizer === 'undefined') {
-    const hasRequire = typeof require !== 'undefined'
-    if (hasRequire) {
+  if (typeof lexicon === 'undefined') {
+    if (typeof require !== 'undefined') {
       tokenizer = require('happynodetokenizer')
       lexicon = require('./data/lexicon.json')
       natural = require('natural')
-    } else throw new Error('affectimo required happynodetokenizer and ./data/lexicon.json')
+    } else throw new Error('affectimo requires node modules happynodetokenizer and natural, and ./data/lexicon.json')
   }
 
-    /**
+  /**
+  * Get all the bigrams of a string and return as an array
   * @function getBigrams
-  * @param  {string} str input string
+  * @param {string} str input string
   * @return {Array} array of bigram strings
   */
   const getBigrams = str => {
-    const NGrams = natural.NGrams
-    const bigrams = NGrams.bigrams(str)
-    const result = []
+    const bigrams = natural.NGrams.bigrams(str)
     const len = bigrams.length
+    const result = []
     let i = 0
     for (i; i < len; i++) {
       result.push(bigrams[i].join(' '))
@@ -76,15 +75,15 @@
   }
 
   /**
+  * Get all the trigrams of a string and return as an array
   * @function getTrigrams
-  * @param  {string} str input string
+  * @param {string} str input string
   * @return {Array} array of trigram strings
   */
   const getTrigrams = str => {
-    const NGrams = natural.NGrams
-    const trigrams = NGrams.trigrams(str)
-    const result = []
+    const trigrams = natural.NGrams.trigrams(str)
     const len = trigrams.length
+    const result = []
     let i = 0
     for (i; i < len; i++) {
       result.push(trigrams[i].join(' '))
@@ -94,8 +93,8 @@
 
   /**
   * @function getMatches
-  * @param  {Array} arr token array
-  * @return {Object}  object of matches
+  * @param {Array} arr token array
+  * @return {Object} object of matches
   */
   const getMatches = (arr, min) => {
     const matches = {}
@@ -106,12 +105,12 @@
       let match = []
       // loop through words in category
       let data = lexicon[category]
-      let key
-      for (key in data) {
-        if (!data.hasOwnProperty(key)) continue
+      let word
+      for (word in data) {
+        if (!data.hasOwnProperty(word)) continue
         // if word from input matches word from lexicon push weight to matches
-        let weight = data[key]
-        if (arr.indexOf(key) > -1 && weight > min) {
+        let weight = data[word]
+        if (arr.indexOf(word) > -1 && weight > min) {
           match.push(weight)
         }
       }
@@ -123,17 +122,17 @@
 
   /**
   * @function calcLex
-  * @param  {Object} obj  matches object
-  * @param  {number} int  intercept value
+  * @param {Object} obj matches object
+  * @param {number} int intercept value
   * @return {number} lexical value
   */
   const calcLex = (obj, int) => {
     // loop through the matches and add up the weights
     let lex = 0
-    let key
-    for (key in obj) {
-      if (!obj.hasOwnProperty(key)) continue
-      lex += Number(obj[key]) // lex += weight
+    let word
+    for (word in obj) {
+      if (!obj.hasOwnProperty(word)) continue
+      lex += Number(obj[word]) // lex += weight
     }
     // add the intercept value
     lex += int
@@ -143,9 +142,9 @@
 
   /**
   * @function affectimo
-  * @param  {string} str  input string
-  * @param  {number} min  minimum lexical weight threshold for matches (0.91 to -0.98)
-  * @return {Object}  object of lexical values
+  * @param {string} str input string
+  * @param {Object} opts options object
+  * @return {Object} object of lexical values
   */
   const affectimo = (str, opts) => {
     // make sure there is input before proceeding
