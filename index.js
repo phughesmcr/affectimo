@@ -1,6 +1,6 @@
 /**
  * affectimo
- * v0.2.1
+ * v0.3.0
  *
  * Analyse the affect (sentiment / valence) and intensity (arousal) of a string.
  *
@@ -20,17 +20,18 @@
  * Usage example:
  * const affectimo = require('affectimo');
  * const opts = {
- *   'threshold': -0.98
- *   'bigrams': true,
- *   'trigrams': true
+ *  'threshold': -0.98,
+ *  'encoding': 'binary',    // 'binary' (default), or 'frequency' - type of word encoding to use.
+ *  'bigrams': true,
+ *  'trigrams': true
  * }
- * const text = "A big long string of text...";
- * const affect = affectimo(text, opts);
+ * const str = "A big long string of text...";
+ * const affect = affectimo(str, opts);
  * console.log(affect)
  *
  * Affect range: 1 = very negative, 5 = neutral, 9 = very positive
  * Intensity range: 1 = neutral/objective to 9 = very high
- * If there are no lexicon matches {'AFFECT': 0, 'INTENSITY': 0} will be returned
+ * If there are no lexicon matches null will be returned
  *
  * Lexical weights run from a maximum of 0.91 to a minimum of -0.98
  * therefore a "threshold" value of -0.98 will include all words in the lexicon
@@ -51,137 +52,154 @@
 
   if (typeof lexicon === 'undefined') {
     if (typeof require !== 'undefined') {
-      tokenizer = require('happynodetokenizer')
       lexicon = require('./data/lexicon.json')
       natural = require('natural')
+      tokenizer = require('happynodetokenizer')
     } else throw new Error('affectimo requires node modules happynodetokenizer and natural, and ./data/lexicon.json')
   }
 
+  // Find how many times an element appears in an array
+  Array.prototype.indexesOf = function (el) {
+    const idxs = []
+    let i = this.length - 1
+    for (i; i >= 0; i--) {
+      if (this[i] === el) {
+        idxs.unshift(i)
+      }
+    }
+    return idxs
+  }
+
   /**
-  * Get all the bigrams of a string and return as an array
-  * @function getBigrams
+  * Get all the n-grams of a string and return as an array
+  * @function getNGrams
   * @param {string} str input string
-  * @return {Array} array of bigram strings
+  * @param {number} n abitrary n-gram number, e.g. 2 = bigrams
+  * @return {Array} array of ngram strings
   */
-  const getBigrams = str => {
-    const bigrams = natural.NGrams.bigrams(str)
-    const len = bigrams.length
+  const getNGrams = (str, n) => {
+    // default to bi-grams on null n
+    if (n == null) n = 2
+    if (typeof n !== 'number') n = Number(n)
+    const ngrams = natural.NGrams.ngrams(str, n)
+    const len = ngrams.length
     const result = []
     let i = 0
     for (i; i < len; i++) {
-      result.push(bigrams[i].join(' '))
+      result.push(ngrams[i].join(' '))
     }
     return result
   }
 
   /**
-  * Get all the trigrams of a string and return as an array
-  * @function getTrigrams
-  * @param {string} str input string
-  * @return {Array} array of trigram strings
-  */
-  const getTrigrams = str => {
-    const trigrams = natural.NGrams.trigrams(str)
-    const len = trigrams.length
-    const result = []
-    let i = 0
-    for (i; i < len; i++) {
-      result.push(trigrams[i].join(' '))
-    }
-    return result
-  }
-
-  /**
+  * Loop through lexicon and match against array
   * @function getMatches
-  * @param {Array} arr token array
+  * @param  {Array} arr token array
+  * @param  {number} threshold  min. weight threshold
   * @return {Object} object of matches
   */
-  const getMatches = (arr, min) => {
+  const getMatches = (arr, threshold) => {
+    // error prevention
+    if (arr == null) return null
+    if (threshold == null) threshold = -999
+    if (typeof threshold !== 'number') threshold = Number(threshold)
+    // loop through categories in lexicon
     const matches = {}
-    // loop through the lexicon categories
     let category
     for (category in lexicon) {
       if (!lexicon.hasOwnProperty(category)) continue
       let match = []
-      // loop through words in category
-      let data = lexicon[category]
       let word
+      let data = lexicon[category]
+      // loop through words in category
       for (word in data) {
         if (!data.hasOwnProperty(word)) continue
-        // if word from input matches word from lexicon push weight to matches
         let weight = data[word]
-        if (arr.indexOf(word) > -1 && weight > min) {
-          match.push(weight)
+        // if word from input matches word from lexicon ...
+        if (arr.indexOf(word) > -1 && weight > threshold) {
+          let count = arr.indexesOf(word).length // number of times the word appears in the input text
+          match.push([word, count, weight])
         }
       }
       matches[category] = match
     }
-    // return matches object
     return matches
   }
 
   /**
+  * Calculate the total lexical value of matches
   * @function calcLex
   * @param {Object} obj matches object
+  * @param {number} wc wordcount
   * @param {number} int intercept value
+  * @param {string} enc encoding
   * @return {number} lexical value
   */
-  const calcLex = (obj, int) => {
-    // loop through the matches and add up the weights
+  const calcLex = (obj, wc, int, enc) => {
+    if (obj == null) return null
     let lex = 0
     let word
     for (word in obj) {
       if (!obj.hasOwnProperty(word)) continue
-      lex += Number(obj[word]) // lex += weight
+      if (enc === 'binary' || enc == null || wc == null) {
+        // weight + weight + weight etc
+        lex += Number(obj[word][2])
+      } else {
+        // (frequency / wordcount) * weight
+        lex += (Number(obj[word][1]) / Number(wc)) * Number(obj[word][2])
+      }
     }
-    // add the intercept value
-    lex += int
-    // return final lexical value + intercept
+    if (int != null) lex += Number(int)
     return lex
   }
 
   /**
+  * Analyse the affect and intensity of a string
   * @function affectimo
   * @param {string} str input string
   * @param {Object} opts options object
-  * @return {Object} object of lexical values
+  * @return {Object} object with 'AFFECT' and 'INTENSITY' keys
   */
   const affectimo = (str, opts) => {
-    // make sure there is input before proceeding
+    // error prevention
     if (str == null) return null
-    // make sure we're working with a string
     if (typeof str !== 'string') str = str.toString()
-    // trim whitespace and convert to lowercase
-    str = str.toLowerCase().trim()
     // option defaults
     if (opts == null) {
       opts = {
         'threshold': -999,    // minimum weight threshold
+        'encoding': 'binary', // word encoding
         'bigrams': true,      // match bigrams?
         'trigrams': true      // match trigrams?
       }
     }
+    opts.encoding = opts.encoding || 'binary'
     opts.threshold = opts.threshold || -999
+    // trim whitespace and convert to lowercase
+    str = str.toLowerCase().trim()
     // convert our string to tokens
     let tokens = tokenizer(str)
     // if no tokens return 0
-    if (tokens == null) return {AFFECT: 0, INTENSITY: 0}
-    // handle bigrams if wanted
+    if (tokens == null) return null
+    // get wordcount before we add n-grams
+    const wordcount = tokens.length
+    // handle bi-grams if wanted
     if (opts.bigrams) {
-      const bigrams = getBigrams(str)
+      const bigrams = getNGrams(str, 2)
       tokens = tokens.concat(bigrams)
     }
-    // handle trigrams if wanted
+    // handle tri-grams if wanted
     if (opts.trigrams) {
-      const trigrams = getTrigrams(str)
+      const trigrams = getNGrams(str, 3)
       tokens = tokens.concat(trigrams)
     }
     // get matches from array
     const matches = getMatches(tokens, opts.threshold)
     // calculate lexical useage
+    const enc = opts.encoding
     const lex = {}
-    lex.AFFECT = calcLex(matches.AFFECT, 5.037104721)
-    lex.INTENSITY = calcLex(matches.INTENSITY, 2.399762631)
+    lex.AFFECT = calcLex(matches.AFFECT, wordcount, 5.037104721, enc)
+    lex.INTENSITY = calcLex(matches.INTENSITY, wordcount, 2.399762631, enc)
     // return lexical value
     return lex
   }
