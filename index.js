@@ -1,6 +1,6 @@
 /**
  * affectimo
- * v0.3.0
+ * v0.3.2
  *
  * Analyse the affect (sentiment / valence) and intensity (arousal) of a string.
  *
@@ -47,15 +47,15 @@
   const previous = root.affectimo
 
   let lexicon = root.lexicon
-  let natural = root.natural
+  let simplengrams = root.simplengrams
   let tokenizer = root.tokenizer
 
   if (typeof lexicon === 'undefined') {
     if (typeof require !== 'undefined') {
       lexicon = require('./data/lexicon.json')
-      natural = require('natural')
+      simplengrams = require('simplengrams')
       tokenizer = require('happynodetokenizer')
-    } else throw new Error('affectimo requires node modules happynodetokenizer and natural, and ./data/lexicon.json')
+    } else throw new Error('affectimo requires happynodetokenizer and simplengrams, and ./data/lexicon.json')
   }
 
   // get number of times el appears in an array
@@ -68,27 +68,6 @@
       }
     }
     return idxs
-  }
-
-  /**
-  * Get all the n-grams of a string and return as an array
-  * @function getNGrams
-  * @param {string} str input string
-  * @param {number} n abitrary n-gram number, e.g. 2 = bigrams
-  * @return {Array} array of ngram strings
-  */
-  const getNGrams = (str, n) => {
-    // default to bi-grams on null n
-    if (n == null) n = 2
-    if (typeof n !== 'number') n = Number(n)
-    const ngrams = natural.NGrams.ngrams(str, n)
-    const len = ngrams.length
-    const result = []
-    let i = 0
-    for (i; i < len; i++) {
-      result.push(ngrams[i].join(' '))
-    }
-    return result
   }
 
   /**
@@ -185,12 +164,12 @@
     const wordcount = tokens.length
     // handle bi-grams if wanted
     if (opts.bigrams) {
-      const bigrams = getNGrams(str, 2)
+      const bigrams = simplengrams(str, 2)
       tokens = tokens.concat(bigrams)
     }
     // handle tri-grams if wanted
     if (opts.trigrams) {
-      const trigrams = getNGrams(str, 3)
+      const trigrams = simplengrams(str, 3)
       tokens = tokens.concat(trigrams)
     }
     // get matches from array
