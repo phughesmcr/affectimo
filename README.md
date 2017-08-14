@@ -7,9 +7,7 @@ Analyse the affect (sentiment / valence) and intensity (arousal) of a string.
 const affectimo = require('affectimo');
 const opts = {
   'threshold': -0.98,
-  'encoding': 'binary',    // 'binary' (default), or 'frequency' - type of word encoding to use.
-  'bigrams': true,
-  'trigrams': true
+  'encoding': 'binary'    // 'binary' (default), or 'frequency' - type of word encoding to use.
 }
 const str = "A big long string of text...";
 const affect = affectimo(str, opts);
@@ -31,10 +29,6 @@ Valid options: 'binary' (default), or 'frequency'.
 'frequency' calculates the lexical value as (word frequency / total wordcount) * word weight
 
 Unless you have a specific need for frequency encoding, we recommend you use binary only.
-
-### 'bigrams' and 'trigrams'
-
-The lexicon includes strings that are between one and three words in length. By default we will match against these using bi-grams and tri-grams, however you may want to disable these when analysing very long strings to save processing time and memory use.
 
 ## Output
 ```Javascript
@@ -59,7 +53,7 @@ If there is no input string or no matches in the lexicon, affectimo will return 
 Sedoc J., Preotiuc-Pietro D. & Ungar, L. (2017). Predicting Emotional Word Ratings using Distributional Representations and Signed Clustering. Proceedings of the 14th Conference of the European Chapter of the Association for Computational Linguistics, EACL.
 
 ### Lexicon
-Using the affect/intensity lexicon data from http://www.wwbp.org/lexica.html
+Using the affect/intensity lexicon data from [WWBP](http://www.wwbp.org/lexica.html)
 
 Used under the [Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported](http://creativecommons.org/licenses/by-nc-sa/3.0/)
 

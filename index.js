@@ -1,6 +1,6 @@
 /**
  * affectimo
- * v0.3.2
+ * v0.4.0
  *
  * Analyse the affect (sentiment / valence) and intensity (arousal) of a string.
  *
@@ -21,9 +21,7 @@
  * const affectimo = require('affectimo');
  * const opts = {
  *  'threshold': -0.98,
- *  'encoding': 'binary',    // 'binary' (default), or 'frequency' - type of word encoding to use.
- *  'bigrams': true,
- *  'trigrams': true
+ *  'encoding': 'binary'    // 'binary' (default), or 'frequency' - type of word encoding to use.
  * }
  * const str = "A big long string of text...";
  * const affect = affectimo(str, opts);
@@ -58,16 +56,38 @@
     } else throw new Error('affectimo requires happynodetokenizer and simplengrams, and ./data/lexicon.json')
   }
 
-  // get number of times el appears in an array
-  function indexesOf (arr, el) {
+  /**
+   * Get the indexes of duplicate elements in an array
+   * @function indexesOf
+   * @param  {Array} arr input array
+   * @param  {string} el element to test against
+   * @return {Array} array of indexes
+   */
+  const indexesOf = (arr, el) => {
     const idxs = []
-    let i = arr.length - 1
-    for (i; i >= 0; i--) {
+    let i = arr.length
+    while (i--) {
       if (arr[i] === el) {
         idxs.unshift(i)
       }
     }
     return idxs
+  }
+
+  /**
+   * Combines multidimensional array elements into strings
+   * @function arr2string
+   * @param  {Array} arr input array
+   * @return {Array} output array
+   */
+  const arr2string = arr => {
+    let i = 0
+    const len = arr.length
+    const result = []
+    for (i; i < len; i++) {
+      result.push(arr[i].join(' '))
+    }
+    return result
   }
 
   /**
@@ -147,9 +167,7 @@
     if (opts == null) {
       opts = {
         'threshold': -999,    // minimum weight threshold
-        'encoding': 'binary', // word encoding
-        'bigrams': true,      // match bigrams?
-        'trigrams': true      // match trigrams?
+        'encoding': 'binary' // word encoding
       }
     }
     opts.encoding = opts.encoding || 'binary'
@@ -162,15 +180,14 @@
     if (tokens == null) return null
     // get wordcount before we add n-grams
     const wordcount = tokens.length
-    // handle bi-grams if wanted
-    if (opts.bigrams) {
-      const bigrams = simplengrams(str, 2)
-      tokens = tokens.concat(bigrams)
-    }
-    // handle tri-grams if wanted
-    if (opts.trigrams) {
-      const trigrams = simplengrams(str, 3)
-      tokens = tokens.concat(trigrams)
+    // get n-grams
+    const ngrams = []
+    ngrams.push(arr2string(simplengrams(str, 2)))
+    ngrams.push(arr2string(simplengrams(str, 3)))
+    const nLen = ngrams.length
+    let i = 0
+    for (i; i < nLen; i++) {
+      tokens = tokens.concat(ngrams[i])
     }
     // get matches from array
     const matches = getMatches(tokens, opts.threshold)
