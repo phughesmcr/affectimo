@@ -1,11 +1,12 @@
 {
   "name": "affectimo",
-  "version": "0.4.0",
+  "version": "1.0.0-rc.1",
   "description": "Analyse the affect (sentiment / valence) and intensity of a string.",
   "main": "index.js",
   "dependencies": {
-    "happynodetokenizer": "^0.1.2",
-    "simplengrams": "^0.0.3"
+    "happynodetokenizer": "^0.2.0",
+    "lex-helpers": "^0.0.3",
+    "simplengrams": "^0.1.0"
   },
   "keywords": [
     "psychology",
