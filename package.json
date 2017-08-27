@@ -1,6 +1,6 @@
 {
   "name": "affectimo",
-  "version": "1.0.0-rc.1",
+  "version": "1.0.0-rc.2",
   "description": "Analyse the affect (sentiment / valence) and intensity of a string.",
   "main": "index.js",
   "dependencies": {

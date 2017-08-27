@@ -1,6 +1,6 @@
 /**
  * affectimo
- * v1.0.0-rc.1
+ * v1.0.0-rc.2
  *
  * Analyse the affect (sentiment / valence) and intensity (arousal) of a string.
  *
@@ -52,30 +52,48 @@
   const global = this;
   const previous = global.affectimo;
 
+  let lexHelpers = global.lexHelpers;
   let lexicon = global.lexicon;
   let simplengrams = global.simplengrams;
   let tokenizer = global.tokenizer;
-  let lexHelpers = global.lexHelpers;
 
   if (typeof lexicon === 'undefined') {
     if (typeof require !== 'undefined') {
+      lexHelpers = require('lex-helpers');
       lexicon = require('./data/lexicon.json');
       simplengrams = require('simplengrams');
       tokenizer = require('happynodetokenizer');
-      lexHelpers = require('lex-helpers');
     } else throw new Error('wellbeing_analysis required modules not found!');
   }
 
   const arr2string = lexHelpers.arr2string;
-  const prepareMatches = lexHelpers.prepareMatches;
-  const getMatches = lexHelpers.getMatches;
   const calcLex = lexHelpers.calcLex;
+  const getMatches = lexHelpers.getMatches;
+  const prepareMatches = lexHelpers.prepareMatches;
+
+  const doLex = (matches, places, encoding, wordcount) => {
+    const lex = {};
+    lex.AFFECT = calcLex(matches.AFFECT, 5.037104721, places, encoding,
+        wordcount);
+    lex.INTENSITY = calcLex(matches.INTENSITY, 2.399762631, places, encoding,
+        wordcount);
+    return lex;
+  };
+
+  const doMatches = (matches, sortBy, wordcount, places, encoding) => {
+    const match = {};
+    match.AFFECT = prepareMatches(matches.AFFECT, sortBy, wordcount, places,
+        encoding);
+    match.INTENSITY = prepareMatches(matches.INTENSITY, sortBy, wordcount,
+        places, encoding);
+    return match;
+  };
 
   /**
   * Analyse the affect and intensity of a string
   * @function affectimo
-  * @param {string} str input string
-  * @param {Object} opts options object
+  * @param  {string} str    input string
+  * @param  {Object} opts   options object
   * @return {Object} object with 'AFFECT' and 'INTENSITY' keys
   */
   const affectimo = (str, opts) => {
@@ -135,25 +153,12 @@
     // calculate lexical useage
     if (output === 'matches') {
       // return matches
-      const match = {};
-      match.AFFECT = prepareMatches(matches.AFFECT, sortBy, wordcount, places,
-          encoding);
-      match.INTENSITY = prepareMatches(matches.INTENSITY, sortBy, wordcount,
-          places, encoding);
-      return match;
+      return doMatches(matches, sortBy, wordcount, places, encoding);
     } else if (output === 'full') {
       // return full
       const full = {};
-      full.matches = {};
-      full.values = {};
-      full.matches.AFFECT = prepareMatches(matches.AFFECT, sortBy, wordcount,
-          places, encoding);
-      full.matches.INTENSITY = prepareMatches(matches.INTENSITY, sortBy,
-          wordcount, places, encoding);
-      full.values.AFFECT = calcLex(matches.AFFECT, 5.037104721, places,
-          encoding, wordcount);
-      full.values.INTENSITY = calcLex(matches.INTENSITY, 2.399762631, places,
-          encoding, wordcount);
+      full.matches = doMatches(matches, sortBy, wordcount, places, encoding);
+      full.values = doLex(matches, places, encoding, wordcount);
       return full;
     } else {
       if (output !== 'lex') {
@@ -161,13 +166,7 @@
             '") is invalid, defaulting to "lex".');
       }
       // default to lexical values
-      const lex = {};
-      lex.AFFECT = calcLex(matches.AFFECT, 5.037104721, places,
-          encoding, wordcount);
-      lex.INTENSITY = calcLex(matches.INTENSITY, 2.399762631, places,
-          encoding, wordcount);
-      // return lexical value
-      return lex;
+      return doLex(matches, places, encoding, wordcount);
     }
   };
 

@@ -93,7 +93,7 @@ If 'output' = 'matches', this option can be used to control how the outputted ar
 
 ### 'places'
 
-**Number - valid options between 0 and 20 inclusive.**
+**Number**
 
 Number of decimal places to limit outputted values to.
 
