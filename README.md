@@ -132,7 +132,7 @@ Lexical weights run from a maximum of 0.91 to a minimum of -0.98.
 ## Acknowledgements
 
 ### References
-Based on [Sedoc J., Preotiuc-Pietro D. & Ungar, L. (2017). Predicting Emotional Word Ratings using Distributional Representations and Signed Clustering. Proceedings of the 14th Conference of the European Chapter of the Association for Computational Linguistics, EACL.](http://wwbp.org/papers/affnorms17eacl.pdf)
+Based on [Preotiuc-Pietro, D., Schwartz, H.A., Park, G., Eichstaedt, J., Kern, M., Ungar, L., Shulman, E.P. (2016). Modelling Valence and Arousal in Facebook Posts. Proceedings of the Workshop on Computational Approaches to Subjectivity, Sentiment and Social Media Analysis (WASSA), NAACL.](http://wwbp.org/papers/va16wassa.pdf)
 
 ### Lexicon
 Using the affect/intensity lexicon data from [WWBP](http://www.wwbp.org/lexica.html) under the [Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported](http://creativecommons.org/licenses/by-nc-sa/3.0/).

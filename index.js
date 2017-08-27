@@ -1,6 +1,6 @@
 /**
  * affectimo
- * v1.0.0-rc.2
+ * v1.0.0
  *
  * Analyse the affect (sentiment / valence) and intensity (arousal) of a string.
  *
@@ -8,10 +8,10 @@
  * https://github.com/phugh/affectimo
  *
  * Based on this paper:
- * Sedoc J., Preotiuc-Pietro D. & Ungar, L. (2017).
- * Predicting Emotional Word Ratings using Distributional Representations and
- * Signed Clustering. Proceedings of the 14th Conference of the European Chapter
- * of the Association for Computational Linguistics, EACL.
+ * Preotiuc-Pietro, D., Schwartz, H.A., Park, G., Eichstaedt, J., Kern, M.,
+ * Ungar, L., Shulman, E.P. (2016). Modelling Valence and Arousal in Facebook
+ * Posts. Proceedings of the Workshop on Computational Approaches to
+ * Subjectivity, Sentiment and Social Media Analysis (WASSA), NAACL.
  *
  * Using the affect/intensity lexicon data from http://www.wwbp.org/lexica.html
  * Used under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0
@@ -71,6 +71,14 @@
   const getMatches = lexHelpers.getMatches;
   const prepareMatches = lexHelpers.prepareMatches;
 
+  /**
+   * @function doLex
+   * @param  {Object} matches   lexical matches object
+   * @param  {number} places    decimal places limit
+   * @param  {string} encoding  type of lexical encoding
+   * @param  {number} wordcount total word count
+   * @return {Object} lexical values object
+   */
   const doLex = (matches, places, encoding, wordcount) => {
     const lex = {};
     lex.AFFECT = calcLex(matches.AFFECT, 5.037104721, places, encoding,
@@ -80,6 +88,15 @@
     return lex;
   };
 
+  /**
+   * @function doMatches
+   * @param  {Object} matches   lexical matches object
+   * @param  {string} sortBy    how to sort arrays
+   * @param  {number} wordcount total word count
+   * @param  {number} places    decimal places limit
+   * @param  {string} encoding  type of lexical encoding
+   * @return {Object} sorted matches object
+   */
   const doMatches = (matches, sortBy, wordcount, places, encoding) => {
     const match = {};
     match.AFFECT = prepareMatches(matches.AFFECT, sortBy, wordcount, places,
