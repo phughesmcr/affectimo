@@ -9,11 +9,11 @@ const opts = {
   'encoding': 'binary',
   'max': Number.POSITIVE_INFINITY,
   'min': Number.NEGATIVE_INFINITY,
-  'nGrams': true,
+  'nGrams': 'true',
   'output': 'lex',
   'places': 9,
   'sortBy': 'freq',
-  'wcGrams': false,
+  'wcGrams': 'false',
 }
 const str = 'A big long string of text...';
 const affect = affectimo(str, opts);
@@ -65,7 +65,7 @@ Frequency encoding takes the overall wordcount and word frequency into account, 
 
 ### 'nGrams'
 
-**Boolean - valid options: true (default) or false**
+**String - valid options: 'true' (default) or 'false'**
 
 n-Grams are contiguous pieces of text, bi-grams being chunks of 2, tri-grams being chunks of 3, etc.
 
@@ -73,7 +73,7 @@ Use the nGrams option to include (true) or exclude (false) n-grams. For accuracy
 
 ### 'wcGrams'
 
-**Boolean - valid options: true or false (default)**
+**String - valid options: 'true' or 'false' (default)**
 
 When set to true, the output from the nGrams option will be added to the word count.
 
