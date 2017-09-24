@@ -1,6 +1,6 @@
 /**
  * affectimo
- * v1.1.0
+ * v1.1.1
  *
  * Analyse the affect (sentiment / valence) and intensity (arousal) of a string.
  *
@@ -63,7 +63,7 @@
       lexicon = require('./data/lexicon.json');
       simplengrams = require('simplengrams');
       tokenizer = require('happynodetokenizer');
-    } else throw new Error('wellbeing_analysis required modules not found!');
+    } else throw new Error('affectimo required modules not found!');
   }
 
   const arr2string = lexHelpers.arr2string;
@@ -158,13 +158,13 @@
     // get wordcount before we add ngrams
     let wordcount = tokens.length;
     // get n-grams
-    if (opts.nGrams.toLowerCase() === 'true') {
+    if (opts.nGrams === 'true') {
       const bigrams = arr2string(simplengrams(str, 2));
       const trigrams = arr2string(simplengrams(str, 3));
       tokens = tokens.concat(bigrams, trigrams);
     }
     // recalculate wordcount if wcGrams is true
-    if (opts.wcGrams.toLowerCase === 'true') wordcount = tokens.length;
+    if (opts.wcGrams === 'true') wordcount = tokens.length;
     // get matches from array
     const matches = getMatches(tokens, lexicon, opts.min, opts.max);
     // calculate lexical useage

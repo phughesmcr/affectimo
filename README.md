@@ -43,7 +43,7 @@ The options object is optional and provides a number of controls to allow you to
 
 ### 'encoding'
 
-**String - valid options: 'binary' (default), or 'freq'**
+**String - valid options: 'binary' (default), 'frequency', or 'percent'**
 
 N.B - You probably don't want to change this, ever.
 
@@ -52,6 +52,8 @@ Controls how the lexical value is calculated.
 Binary is simply the addition of lexical weights, i.e. word1 + word2 + word3.
 
 Frequency encoding takes the overall wordcount and word frequency into account, i.e. (word frequency / word count) * weight.
+
+Percent returns the percentage of token matches in each category as a decimal, i.e. 0.48 - 48%.
 
 ### 'output'
 
@@ -114,6 +116,7 @@ Lexical weights run from a maximum of 0.91 to a minimum of -0.98.
 ```javascript
 {
   AFFECT:
+    matches:
     [
       [ 'magnificent', 1, -192.0206116, -1.3914537072463768 ],
       [ 'capital', 1, -133.9311307, -0.9705154398550726 ],
@@ -121,6 +124,12 @@ Lexical weights run from a maximum of 0.91 to a minimum of -0.98.
       [ 'america', 2, -49.21227355, -0.7132213557971014 ],
       [ 'republic', 1, -75.5720402, -0.5476234797101449 ]
     ],
+    info:
+    {
+      total_matches: 100,
+      total_token: 200,
+      percent_matches: 50
+    }
   INTENSITY:
     [
       ....
@@ -135,7 +144,7 @@ Lexical weights run from a maximum of 0.91 to a minimum of -0.98.
 Based on [Preotiuc-Pietro, D., Schwartz, H.A., Park, G., Eichstaedt, J., Kern, M., Ungar, L., Shulman, E.P. (2016). Modelling Valence and Arousal in Facebook Posts. Proceedings of the Workshop on Computational Approaches to Subjectivity, Sentiment and Social Media Analysis (WASSA), NAACL.](http://wwbp.org/papers/va16wassa.pdf)
 
 ### Lexicon
-Using the affect/intensity lexicon data from [WWBP](http://www.wwbp.org/lexica.html) under the [Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported](http://creativecommons.org/licenses/by-nc-sa/3.0/).
+Using the affect/intensity lexicon data from [WWBP](http://www.wwbp.org/lexica.html) under the [Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported](http://creativecommons.org/licenses/by-nc-sa/3.0/) licence.
 
 ## Licence
 (C) 2017 [P. Hughes](https://www.phugh.es).
