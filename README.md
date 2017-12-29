@@ -9,11 +9,11 @@ const opts = {
   'encoding': 'binary',
   'max': Number.POSITIVE_INFINITY,
   'min': Number.NEGATIVE_INFINITY,
-  'nGrams': 'true',
+  'nGrams': [2, 3],
   'output': 'lex',
   'places': 9,
   'sortBy': 'freq',
-  'wcGrams': 'false',
+  'wcGrams': false,
 }
 const str = 'A big long string of text...';
 const affect = affectimo(str, opts);
@@ -67,15 +67,33 @@ Percent returns the percentage of token matches in each category as a decimal, i
 
 ### 'nGrams'
 
-**String - valid options: 'true' (default) or 'false'**
+**Array - valid options: [ number, number, ...]**
 
 n-Grams are contiguous pieces of text, bi-grams being chunks of 2, tri-grams being chunks of 3, etc.
 
-Use the nGrams option to include (true) or exclude (false) n-grams. For accuracy it is recommended that n-grams are included, however including n-grams for very long strings can detrement performance.
+Use the nGrams option to include n-gram chunks. For example if you want to include both bi-grams and tri-grams, use like so:
+
+```javascript
+{
+  nGrams: [2, 3]
+}
+```
+
+If you only want to include tri-grams:
+
+```javascript
+{
+  nGrams: [3]
+}
+```
+
+If the number of words in the string is less than the ngram number provided, the option will simply be ignored.
+
+For accuracy it is recommended that n-grams are included, however including n-grams for very long strings can detrement performance.
 
 ### 'wcGrams'
 
-**String - valid options: 'true' or 'false' (default)**
+**Boolean - valid options: true, or false (default)**
 
 When set to true, the output from the nGrams option will be added to the word count.
 
@@ -128,6 +146,7 @@ Lexical weights run from a maximum of 0.91 to a minimum of -0.98.
     {
       total_matches: 100,
       total_token: 200,
+      total_unique_matches: 64,
       percent_matches: 50
     }
   INTENSITY:

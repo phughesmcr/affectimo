@@ -1,6 +1,6 @@
 /**
  * affectimo
- * v1.1.1
+ * v2.0.0
  *
  * Analyse the affect (sentiment / valence) and intensity (arousal) of a string.
  *
@@ -27,11 +27,11 @@
  *  'encoding': 'binary',
  *  'max': Number.POSITIVE_INFINITY,
  *  'min': Number.NEGATIVE_INFINITY,
- *  'nGrams': 'true',
+ *  'nGrams': [2, 3],
  *  'output': 'lex',
  *  'places': 9,
  *  'sortBy': 'freq',
- *  'wcGrams': 'false',
+ *  'wcGrams': false,
  * }
  * const str = 'A big long string of text...';
  * const affect = affectimo(str, opts);
@@ -47,11 +47,11 @@
  * @return {Object} object with 'AFFECT' and 'INTENSITY' keys
  */
 
-'use strict'
-;(function() {
+(function() {
   const global = this;
   const previous = global.affectimo;
 
+  let async = global.async;
   let lexHelpers = global.lexHelpers;
   let lexicon = global.lexicon;
   let simplengrams = global.simplengrams;
@@ -59,52 +59,19 @@
 
   if (typeof lexicon === 'undefined') {
     if (typeof require !== 'undefined') {
+      async = require('async');
       lexHelpers = require('lex-helpers');
       lexicon = require('./data/lexicon.json');
       simplengrams = require('simplengrams');
       tokenizer = require('happynodetokenizer');
-    } else throw new Error('affectimo required modules not found!');
+    } else throw new Error('affectimo: required modules not found!');
   }
 
   const arr2string = lexHelpers.arr2string;
-  const calcLex = lexHelpers.calcLex;
+  const doLex = lexHelpers.doLex;
+  const doMatches = lexHelpers.doMatches;
   const getMatches = lexHelpers.getMatches;
-  const prepareMatches = lexHelpers.prepareMatches;
-
-  /**
-   * @function doLex
-   * @param  {Object} matches   lexical matches object
-   * @param  {number} places    decimal places limit
-   * @param  {string} encoding  type of lexical encoding
-   * @param  {number} wordcount total word count
-   * @return {Object} lexical values object
-   */
-  const doLex = (matches, places, encoding, wordcount) => {
-    const lex = {};
-    lex.AFFECT = calcLex(matches.AFFECT, 5.037104721, places, encoding,
-        wordcount);
-    lex.INTENSITY = calcLex(matches.INTENSITY, 2.399762631, places, encoding,
-        wordcount);
-    return lex;
-  };
-
-  /**
-   * @function doMatches
-   * @param  {Object} matches   lexical matches object
-   * @param  {string} sortBy    how to sort arrays
-   * @param  {number} wordcount total word count
-   * @param  {number} places    decimal places limit
-   * @param  {string} encoding  type of lexical encoding
-   * @return {Object} sorted matches object
-   */
-  const doMatches = (matches, sortBy, wordcount, places, encoding) => {
-    const match = {};
-    match.AFFECT = prepareMatches(matches.AFFECT, sortBy, wordcount, places,
-        encoding);
-    match.INTENSITY = prepareMatches(matches.INTENSITY, sortBy, wordcount,
-        places, encoding);
-    return match;
-  };
+  const itemCount = lexHelpers.itemCount;
 
   /**
   * Analyse the affect and intensity of a string
@@ -125,25 +92,31 @@
     str = str.toLowerCase().trim();
     // options defaults
     if (!opts || typeof opts !== 'object') {
+      console.warn('affectimo: using default options.');
       opts = {
         'encoding': 'binary',
         'max': Number.POSITIVE_INFINITY,
         'min': Number.NEGATIVE_INFINITY,
-        'nGrams': 'true',
+        'nGrams': [2, 3],
         'output': 'lex',
         'places': 9,
         'sortBy': 'freq',
-        'wcGrams': 'false',
+        'wcGrams': false,
       };
     }
     opts.encoding = opts.encoding || 'binary';
     opts.max = opts.max || Number.POSITIVE_INFINITY;
     opts.min = opts.min || Number.NEGATIVE_INFINITY;
-    opts.nGrams = opts.nGrams || 'true';
+    opts.nGrams = opts.nGrams || [2, 3];
     opts.output = opts.output || 'lex';
     opts.places = opts.places || 9;
     opts.sortBy = opts.sortBy || 'freq';
-    opts.wcGrams = opts.wcGrams || 'false';
+    opts.wcGrams = opts.wcGrams || false;
+    if (!Array.isArray(opts.nGrams)) {
+      console.error('affectimo: nGrams option must be an array! ' +
+          'Defaulting to [2, 3].');
+      opts.nGrams = [2, 3];
+    }
     const encoding = opts.encoding;
     const output = opts.output;
     const places = opts.places;
@@ -158,24 +131,49 @@
     // get wordcount before we add ngrams
     let wordcount = tokens.length;
     // get n-grams
-    if (opts.nGrams === 'true') {
-      const bigrams = arr2string(simplengrams(str, 2));
-      const trigrams = arr2string(simplengrams(str, 3));
-      tokens = tokens.concat(bigrams, trigrams);
+    if (opts.nGrams) {
+      async.each(opts.nGrams, function(n, callback) {
+        if (wordcount > n) {
+          tokens = tokens.concat(arr2string(simplengrams(str, n)));
+        } else {
+          console.warn('affectimo: wordcount less than n-gram value "' + n +
+              '". Ignoring.');
+        }
+        callback();
+      }, function(err) {
+        if (err) console.error('affectimo: nGram error: ', err);
+      });
     }
     // recalculate wordcount if wcGrams is true
-    if (opts.wcGrams === 'true') wordcount = tokens.length;
+    if (opts.wcGrams) wordcount = tokens.length;
+    // reduce tokens to count item
+    tokens = itemCount(tokens);
     // get matches from array
     const matches = getMatches(tokens, lexicon, opts.min, opts.max);
-    // calculate lexical useage
+    // define intercept values
+    const ints = {
+      AFFECT: 5.037104721,
+      INTENSITY: 2.399762631,
+    };
+    // returns
     if (output === 'matches') {
       // return matches
       return doMatches(matches, sortBy, wordcount, places, encoding);
     } else if (output === 'full') {
-      // return full
-      const full = {};
-      full.matches = doMatches(matches, sortBy, wordcount, places, encoding);
-      full.values = doLex(matches, places, encoding, wordcount);
+      // return matches and values in one object
+      let full;
+      async.parallel({
+        matches: function(callback) {
+          callback(null, doMatches(matches, sortBy, wordcount, places, 
+              encoding));
+        },
+        values: function(callback) {
+          callback(null, doLex(matches, ints, places, encoding, wordcount));
+        },
+      }, function(err, results) {
+        if (err) console.error(err);
+        full = results;
+      });
       return full;
     } else {
       if (output !== 'lex') {
@@ -183,7 +181,7 @@
             '") is invalid, defaulting to "lex".');
       }
       // default to lexical values
-      return doLex(matches, places, encoding, wordcount);
+      return doLex(matches, ints, places, encoding, wordcount);
     }
   };
 
