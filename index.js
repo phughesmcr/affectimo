@@ -1,8 +1,8 @@
 /**
  * affectimo
- * v2.0.0
+ * v2.1.0
  *
- * Analyse the affect (sentiment / valence) and intensity (arousal) of a string.
+ * Get the sentiment (affect or valence) and intensity (arousal) of a string.
  *
  * Help me make this better:
  * https://github.com/phugh/affectimo
@@ -17,8 +17,8 @@
  * Used under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0
  * Unported licence
  *
- * (C) 2017 P. Hughes
- * Licence : Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported
+ * (C) 2018 P. Hughes
+ * License : Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported
  * http://creativecommons.org/licenses/by-nc-sa/3.0/
  *
  * Usage example:
@@ -48,25 +48,16 @@
  */
 
 (function() {
-  const global = this;
-  const previous = global.affectimo;
+  'use strict';
 
-  let async = global.async;
-  let lexHelpers = global.lexHelpers;
-  let lexicon = global.lexicon;
-  let simplengrams = global.simplengrams;
-  let tokenizer = global.tokenizer;
+  // Lexicon data
+  const lexicon = require('./data/lexicon.json');
 
-  if (typeof lexicon === 'undefined') {
-    if (typeof require !== 'undefined') {
-      async = require('async');
-      lexHelpers = require('lex-helpers');
-      lexicon = require('./data/lexicon.json');
-      simplengrams = require('simplengrams');
-      tokenizer = require('happynodetokenizer');
-    } else throw new Error('affectimo: required modules not found!');
-  }
-
+  // External modules
+  const async = require('async');
+  const simplengrams = require('simplengrams');
+  const tokenizer = require('happynodetokenizer');
+  const lexHelpers = require('lex-helpers');
   const arr2string = lexHelpers.arr2string;
   const doLex = lexHelpers.doLex;
   const doMatches = lexHelpers.doMatches;
@@ -74,16 +65,16 @@
   const itemCount = lexHelpers.itemCount;
 
   /**
-  * Analyse the affect and intensity of a string
+  * Analyse the sentiment and intensity of a string
   * @function affectimo
   * @param  {string} str    input string
   * @param  {Object} opts   options object
   * @return {Object} object with 'AFFECT' and 'INTENSITY' keys
   */
-  const affectimo = (str, opts) => {
+  function affectimo(str, opts) {
     // no string return null
     if (!str) {
-      console.error('affectimo: no string found. Returning null.');
+      console.warn('affectimo: no string found. Returning null.');
       return null;
     }
     // if str isn't a string, make it into one
@@ -92,7 +83,7 @@
     str = str.toLowerCase().trim();
     // options defaults
     if (!opts || typeof opts !== 'object') {
-      console.warn('affectimo: using default options.');
+      console.log('affectimo: using default options.');
       opts = {
         'encoding': 'binary',
         'max': Number.POSITIVE_INFINITY,
@@ -113,7 +104,7 @@
     opts.sortBy = opts.sortBy || 'freq';
     opts.wcGrams = opts.wcGrams || false;
     if (!Array.isArray(opts.nGrams)) {
-      console.error('affectimo: nGrams option must be an array! ' +
+      console.warn('affectimo: nGrams option must be an array! ' +
           'Defaulting to [2, 3].');
       opts.nGrams = [2, 3];
     }
@@ -128,7 +119,7 @@
       console.warn('affectimo: no tokens found. Returned null.');
       return null;
     }
-    // get wordcount before we add ngrams
+    // get wordcount before we add n-grams
     let wordcount = tokens.length;
     // get n-grams
     if (opts.nGrams) {
@@ -150,16 +141,16 @@
     tokens = itemCount(tokens);
     // get matches from array
     const matches = getMatches(tokens, lexicon, opts.min, opts.max);
-    // define intercept values
+    // define intercept values (defined in Preotiuc-Pietro et al.)
     const ints = {
       AFFECT: 5.037104721,
       INTENSITY: 2.399762631,
     };
     // returns
-    if (output === 'matches') {
+    if (output.match(/matches/gi)) {
       // return matches
       return doMatches(matches, sortBy, wordcount, places, encoding);
-    } else if (output === 'full') {
+    } else if (output.match(/full/gi)) {
       // return matches and values in one object
       let full;
       async.parallel({
@@ -176,19 +167,14 @@
       });
       return full;
     } else {
-      if (output !== 'lex') {
+      if (!output.match(/lex/gi)) {
         console.warn('affectimo: output option ("' + output +
             '") is invalid, defaulting to "lex".');
       }
       // default to lexical values
       return doLex(matches, ints, places, encoding, wordcount);
     }
-  };
-
-  affectimo.noConflict = function() {
-    global.affectimo = previous;
-    return affectimo;
-  };
+  }
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {
@@ -198,4 +184,4 @@
   } else {
     global.affectimo = affectimo;
   }
-}).call(this);
+})();

@@ -1,6 +1,6 @@
 # affectimo
 
-Analyse the affect (sentiment / valence) and intensity (arousal) of a string.
+Get the sentiment (affect or valence) and intensity (arousal) of a string.
 
 ## Usage
 ```javascript
@@ -35,7 +35,7 @@ Range: 1 = very negative, 5 = neutral, 9 = very positive.
 Range: 1 = neutral/objective, to 9 = very high intensity.
 
 ### Errors or No Matches
-If there is no input string or no matches in the lexicon, affectimo will return null.
+If there is no input string, no matches in the lexicon, or there are errors, affectimo will return null.
 
 ## The Options Object
 
@@ -165,7 +165,7 @@ Based on [Preotiuc-Pietro, D., Schwartz, H.A., Park, G., Eichstaedt, J., Kern, M
 ### Lexicon
 Using the affect/intensity lexicon data from [WWBP](http://www.wwbp.org/lexica.html) under the [Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported](http://creativecommons.org/licenses/by-nc-sa/3.0/) licence.
 
-## Licence
-(C) 2017 [P. Hughes](https://www.phugh.es).
+## License
+(C) 2017-18 [P. Hughes](https://www.phugh.es). All rights reserved.
 
-[Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported](http://creativecommons.org/licenses/by-nc-sa/3.0/).
+Shared under the [Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported](http://creativecommons.org/licenses/by-nc-sa/3.0/) license.

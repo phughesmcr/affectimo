@@ -1,24 +1,25 @@
 {
   "name": "affectimo",
-  "version": "2.0.0",
-  "description": "Analyse the affect (sentiment / valence) and intensity (arousal) of a string.",
+  "version": "2.1.0",
+  "description": "Analyse the sentiment (affect or valence) and intensity (arousal) of a string.",
   "main": "index.js",
   "dependencies": {
     "async": "^2.6.0",
-    "happynodetokenizer": "0.2.1",
+    "happynodetokenizer": "^0.3.0",
     "lex-helpers": "^0.2.0",
-    "simplengrams": "0.1.2"
+    "simplengrams": "^0.2.0"
   },
   "keywords": [
+    "sentiment",
+    "emotion",
+    "mood",
     "psychology",
     "prediction",
     "affect",
     "intensity",
     "analysis",
-    "sentiment",
     "valence",
-    "arousal",
-    "emotion"
+    "feelings"
   ],
   "author": "P. Hughes <peter@phugh.es> (http://www.phugh.es)",
   "license": "CC-BY-NC-SA-3.0",
