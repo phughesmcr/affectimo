@@ -1,6 +1,6 @@
 /**
  * affectimo
- * v2.1.0
+ * v2.1.1
  *
  * Get the sentiment (affect or valence) and intensity (arousal) of a string.
  *
@@ -31,6 +31,7 @@
  *  'output': 'lex',
  *  'places': 9,
  *  'sortBy': 'freq',
+ *  'suppressLog': false,
  *  'wcGrams': false,
  * }
  * const str = 'A big long string of text...';
@@ -74,7 +75,9 @@
   function affectimo(str, opts) {
     // no string return null
     if (!str) {
-      console.warn('affectimo: no string found. Returning null.');
+      if (!opts || !opts.suppressLog) {
+        console.warn('affectimo: no string found. Returning null.');
+      }
       return null;
     }
     // if str isn't a string, make it into one
@@ -83,7 +86,6 @@
     str = str.toLowerCase().trim();
     // options defaults
     if (!opts || typeof opts !== 'object') {
-      console.log('affectimo: using default options.');
       opts = {
         'encoding': 'binary',
         'max': Number.POSITIVE_INFINITY,
@@ -92,6 +94,7 @@
         'output': 'lex',
         'places': 9,
         'sortBy': 'freq',
+        'suppressLog': false,
         'wcGrams': false,
       };
     }
@@ -102,10 +105,13 @@
     opts.output = opts.output || 'lex';
     opts.places = opts.places || 9;
     opts.sortBy = opts.sortBy || 'freq';
+    opts.suppressLog = opts.suppressLog || false;
     opts.wcGrams = opts.wcGrams || false;
     if (!Array.isArray(opts.nGrams)) {
-      console.warn('affectimo: nGrams option must be an array! ' +
-          'Defaulting to [2, 3].');
+      if (!opts || !opts.suppressLog) {
+        console.warn('affectimo: nGrams option must be an array! ' + 
+            'Defaulting to [2, 3].');
+      }
       opts.nGrams = [2, 3];
     }
     const encoding = opts.encoding;
@@ -116,7 +122,9 @@
     let tokens = tokenizer(str);
     // if there are no tokens return null
     if (!tokens) {
-      console.warn('affectimo: no tokens found. Returned null.');
+      if (!opts || !opts.suppressLog) {
+        console.warn('affectimo: no tokens found. Returned null.');
+      }
       return null;
     }
     // get wordcount before we add n-grams
@@ -127,12 +135,16 @@
         if (wordcount > n) {
           tokens = tokens.concat(arr2string(simplengrams(str, n)));
         } else {
-          console.warn('affectimo: wordcount less than n-gram value "' + n +
-              '". Ignoring.');
+          if (!opts || !opts.suppressLog) {
+            console.warn('affectimo: wordcount less than n-gram value "' + n +
+                '". Ignoring.');
+          }
         }
         callback();
       }, function(err) {
-        if (err) console.error('affectimo: nGram error: ', err);
+        if (err && !opts.suppressLog) {
+          console.error('affectimo: nGram error: ', err);
+        }
       });
     }
     // recalculate wordcount if wcGrams is true
@@ -168,8 +180,10 @@
       return full;
     } else {
       if (!output.match(/lex/gi)) {
-        console.warn('affectimo: output option ("' + output +
-            '") is invalid, defaulting to "lex".');
+        if (!opts || !opts.suppressLog) {
+          console.warn('affectimo: output option ("' + output +
+              '") is invalid, defaulting to "lex".');
+        }
       }
       // default to lexical values
       return doLex(matches, ints, places, encoding, wordcount);

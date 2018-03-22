@@ -1,12 +1,12 @@
 {
   "name": "affectimo",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Analyse the sentiment (affect or valence) and intensity (arousal) of a string.",
   "main": "index.js",
   "dependencies": {
     "async": "^2.6.0",
     "happynodetokenizer": "^0.3.0",
-    "lex-helpers": "^0.2.0",
+    "lex-helpers": "^0.2.1",
     "simplengrams": "^0.2.0"
   },
   "keywords": [

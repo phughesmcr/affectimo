@@ -13,18 +13,20 @@ const opts = {
   'output': 'lex',
   'places': 9,
   'sortBy': 'freq',
+  'suppressLog': false,
   'wcGrams': false,
 }
 const str = 'A big long string of text...';
 const affect = affectimo(str, opts);
 console.log(affect)
 ```
+---
 
 ## Default Output Example
 ```javascript
 {
-  'AFFECT': 5.34,
-  'INTENSITY': 2.83
+  'AFFECT': 5.341427583,
+  'INTENSITY': 2.832817563
 }
 ```
 
@@ -36,6 +38,8 @@ Range: 1 = neutral/objective, to 9 = very high intensity.
 
 ### Errors or No Matches
 If there is no input string, no matches in the lexicon, or there are errors, affectimo will return null.
+
+---
 
 ## The Options Object
 
@@ -91,6 +95,14 @@ If the number of words in the string is less than the ngram number provided, the
 
 For accuracy it is recommended that n-grams are included, however including n-grams for very long strings can detrement performance.
 
+### ''suppressLog'
+
+**Boolean - valid options: true, or false (default)**
+
+When set to true, no console logs, warnings, or errors will be printed.
+
+You may want to set this to true for production.
+
 ### 'wcGrams'
 
 **Boolean - valid options: true, or false (default)**
@@ -129,6 +141,8 @@ By default these are set to infinity, ensuring that no words from the lexicon ar
 
 Lexical weights run from a maximum of 0.91 to a minimum of -0.98.
 
+---
+
 ## {output: 'matches'} Output Example
 
 ```javascript
@@ -156,6 +170,8 @@ Lexical weights run from a maximum of 0.91 to a minimum of -0.98.
   ...
 };
 ```
+
+---
 
 ## Acknowledgements
 
