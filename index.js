@@ -1,6 +1,6 @@
 /**
  * affectimo
- * v3.0.0
+ * v3.0.1
  *
  * Get the affect (sentiment or valence) and intensity (arousal) of a string.
  *
@@ -76,8 +76,8 @@
   */
   function affectimo(str, opts = {}) {
     // default options
-    opts.encoding = (typeof opts.encoding !== 'undefined') ? opts.encoding : 'US';
-    opts.locale = (typeof opts.logs !== 'undefined') ? opts.logs : 3;
+    opts.encoding = (typeof opts.encoding !== 'undefined') ? opts.encoding : 'binary';
+    opts.locale = (typeof opts.locale !== 'undefined') ? opts.locale : 'US';
     opts.logs = (typeof opts.logs !== 'undefined') ? opts.logs : 3;
     if (opts.suppressLog) opts.logs = 0;
     opts.max = (typeof opts.max !== 'undefined') ? opts.max : Number.POSITIVE_INFINITY;

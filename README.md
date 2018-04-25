@@ -95,6 +95,10 @@ If the number of words in the string is less than the ngram number provided, the
 
 For accuracy it is recommended that n-grams are included, however including n-grams for very long strings can detrement performance.
 
+### 'locale'
+**String - valid options: 'US' (default), 'GB'**
+The lexicon data is in American English (US), if the string(s) you want to analyse are in British English set the locale option to 'GB'.
+
 ### 'logs'
 **Number - valid options: 0, 1, 2, 3 (default)**
 Used to control console.log, console.warn, and console.error outputs.
