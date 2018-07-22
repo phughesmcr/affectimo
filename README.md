@@ -7,13 +7,15 @@ Get the affect (sentiment or valence) and intensity (arousal) of a string.
 const affectimo = require('affectimo');
 const opts = {
   'encoding': 'binary',
+  'locale': 'US',
+  'logs': 2,
   'max': Number.POSITIVE_INFINITY,
   'min': Number.NEGATIVE_INFINITY,
   'nGrams': [2, 3],
+  'noInt': false,
   'output': 'lex',
   'places': 9,
   'sortBy': 'freq',
-  'logs': 3,
   'wcGrams': false,
 }
 const str = 'A big long string of text...';
@@ -59,15 +61,27 @@ Frequency encoding takes the overall wordcount and word frequency into account, 
 
 Percent returns the percentage of token matches in each category as a decimal, i.e. 0.48 - 48%.
 
-### 'output'
+### 'locale'
+**String - valid options: 'US' (default), 'GB'**
+The lexicon data is in American English (US), if the string(s) you want to analyse are in British English set the locale option to 'GB'.
 
-**String - valid options: 'lex' (default), 'matches', or 'full'**
+### 'logs'
+**Number - valid options: 0, 1, 2, 3 (default)**
+Used to control console.log, console.warn, and console.error outputs.
+* 0 = suppress all logs
+* 1 = print errors only
+* 2 = print errors and warnings
+* 3 = print all console logs
 
-'lex' returns the lexical values for affect and intensity. See "default output example" above.
+### 'max' and 'min'
 
-'matches' returns an array of matched words along with the number of times each word appears, its weight, and its final lexical value. See the output section below for an example.
+**Float**
 
-'full' returns an object containing the lexical value and the matches array.
+Exclude words that have weights above the max threshold or below the min threshold.
+
+By default these are set to infinity, ensuring that no words from the lexicon are excluded.
+
+Lexical weights run from a maximum of 0.91 to a minimum of -0.98.
 
 ### 'nGrams'
 
@@ -91,29 +105,43 @@ If you only want to include tri-grams:
 }
 ```
 
+To disable n-gram inclusion, use the following:
+
+```javascript
+{
+  nGrams: [0]
+}
+```
+
 If the number of words in the string is less than the ngram number provided, the option will simply be ignored.
 
-For accuracy it is recommended that n-grams are included, however including n-grams for very long strings can detrement performance.
+For accuracy it is recommended that n-grams are included, however including n-grams for very long strings can affect performance.
 
-### 'locale'
-**String - valid options: 'US' (default), 'GB'**
-The lexicon data is in American English (US), if the string(s) you want to analyse are in British English set the locale option to 'GB'.
+### 'noInt'
 
-### 'logs'
-**Number - valid options: 0, 1, 2, 3 (default)**
-Used to control console.log, console.warn, and console.error outputs.
-* 0 = suppress all logs
-* 1 = print errors only
-* 2 = print errors and warnings
-* 3 = print all console logs
+**Boolean - valid options: true or false (default)**
 
-### 'wcGrams'
+The lexica contain intercept values, set noInt to true to ignore these values.
 
-**Boolean - valid options: true, or false (default)**
+Unless you have a specific need to ignore the intercepts, it is recommended you leave this set to false.
 
-When set to true, the output from the nGrams option will be added to the word count.
+### 'output'
 
-For accuracy it is recommended that this is set to false.
+**String - valid options: 'lex' (default), 'matches', or 'full'**
+
+'lex' returns the lexical values for affect and intensity. See "default output example" above.
+
+'matches' returns an array of matched words along with the number of times each word appears, its weight, and its final lexical value. See the output section below for an example.
+
+'full' returns an object containing the lexical value and the matches array.
+
+### 'places'
+
+**Number**
+
+Number of decimal places to limit outputted values to.
+
+The default is 9.
 
 ### 'sortBy'
 
@@ -127,23 +155,13 @@ If 'output' = 'matches', this option can be used to control how the outputted ar
 
 'freq' (default) sorts by word frequency, i.e. the most used words appear first.
 
-### 'places'
+### 'wcGrams'
 
-**Number**
+**Boolean - valid options: true, or false (default)**
 
-Number of decimal places to limit outputted values to.
+When set to true, the output from the nGrams option will be added to the word count.
 
-The default is 9.
-
-### 'max' and 'min'
-
-**Float**
-
-Exclude words that have weights above the max threshold or below the min threshold.
-
-By default these are set to infinity, ensuring that no words from the lexicon are excluded.
-
-Lexical weights run from a maximum of 0.91 to a minimum of -0.98.
+For accuracy it is recommended that this is set to false.
 
 ---
 
@@ -183,7 +201,7 @@ Lexical weights run from a maximum of 0.91 to a minimum of -0.98.
 Based on [Preotiuc-Pietro, D., Schwartz, H.A., Park, G., Eichstaedt, J., Kern, M., Ungar, L., Shulman, E.P. (2016). Modelling Valence and Arousal in Facebook Posts. Proceedings of the Workshop on Computational Approaches to Subjectivity, Sentiment and Social Media Analysis (WASSA), NAACL.](http://wwbp.org/papers/va16wassa.pdf)
 
 ### Lexicon
-Using the affect/intensity lexicon data from [WWBP](http://www.wwbp.org/lexica.html) under the [Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported](http://creativecommons.org/licenses/by-nc-sa/3.0/) licence.
+Using the affect/intensity lexicon data from [WWBP](http://www.wwbp.org/lexica.html) under the [Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported](http://creativecommons.org/licenses/by-nc-sa/3.0/) license.
 
 ## License
 (C) 2017-18 [P. Hughes](https://www.phugh.es). All rights reserved.
